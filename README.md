@@ -151,54 +151,34 @@ systemctl restart x-ui
 </details>
 
 ## Install with Docker
+First let us clone the repository:
 
-<details>
-  <summary>Click for Docker details</summary>
+git clone https://github.com/MHSanaei/3x-ui.git
+Next in the directory we need to make some adjustments in docker-compose.yml file and add a path to recently created SSL certificates. In order to do it you need to change the original line $PWD/cert/:/root/cert/ to /etc/letsencrypt/:/etc/letsencrypt/:rw.
 
-#### Usage
+In addition to that, you’ll need to specify your hostname.
 
-1. **Install Docker:**
+So the final version of our docker-compose.yml will look something like this:
 
-   ```sh
-   bash <(curl -sSL https://get.docker.com)
-   ```
+---
+version: "3"
 
-2. **Clone the Project Repository:**
+services:
+3x-ui:
+    image: ghcr.io/mhsanaei/3x-ui:latest
+    container_name: 3x-ui
+    hostname: domain.com
+    volumes:
+    - $PWD/db/:/etc/x-ui/
+    - /etc/letsencrypt/:/etc/letsencrypt/:rw
+    environment:
+    XRAY_VMESS_AEAD_FORCED: "false"
+    tty: true
+    network_mode: host
+    restart: unless-stopped
+Now we can start our container
 
-   ```sh
-   git clone https://github.com/MHSanaei/3x-ui.git
-   cd 3x-ui
-   ```
-
-3. **Start the Service:**
-
-   ```sh
-   docker compose up -d
-   ```
-
-  Add ```--pull always``` flag to make docker automatically recreate container if a newer image is pulled. See https://docs.docker.com/reference/cli/docker/container/run/#pull for more info.
-
-   **OR**
-
-   ```sh
-   docker run -itd \
-      -e XRAY_VMESS_AEAD_FORCED=false \
-      -v $PWD/db/:/etc/x-ui/ \
-      -v $PWD/cert/:/root/cert/ \
-      --network=host \
-      --restart=unless-stopped \
-      --name 3x-ui \
-      ghcr.io/mhsanaei/3x-ui:latest
-   ```
-
-4. **Update to the Latest Version:**
-
-   ```sh
-   cd 3x-ui
-   docker compose down
-   docker compose pull 3x-ui
-   docker compose up -d
-   ```
+docker compose up -d
 
 5. **Remove 3x-ui from Docker:**
 
